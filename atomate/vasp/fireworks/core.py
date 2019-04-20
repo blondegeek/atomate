@@ -176,7 +176,7 @@ class StaticInterpolateFW(Firework):
         t.append(WriteVaspFromIOSetFromInterpolatedPOSCAR(
             start=start, end=end, this_image=this_image, nimages=nimages,
             autosort_tol=autosort_tol, vasp_input_set=vasp_input_set,
-            vasp_input_set_params=vasp_input_set_params))
+            vasp_input_params=vasp_input_set_params))
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))

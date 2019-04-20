@@ -24,11 +24,15 @@ __email__ = 'tsmidt@berkeley.edu'
 logger = get_logger(__name__)
 
 
-def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", db_file=None,
-                         vasp_input_set_polar="MPStaticSet", vasp_input_set_nonpolar="MPStaticSet",
-                         relax=False, vasp_relax_input_set_polar=None, vasp_relax_input_set_nonpolar=None,
-                         nimages=9, hse=False, add_analysis_task=False, wfid=None,
-                         tags=None):
+def get_wf_ferroelectric(polar_structure, nonpolar_structure,
+                         vasp_cmd="vasp", db_file=None,
+                         vasp_input_set_polar="MPStaticSet",
+                         vasp_input_set_nonpolar="MPStaticSet",
+                         vasp_input_set_params=None,
+                         relax=False, vasp_relax_input_set_polar=None,
+                         vasp_relax_input_set_nonpolar=None,
+                         nimages=9, hse=False, add_analysis_task=False,
+                         wfid=None, tags=None):
     """
     Returns a workflow to calculate the spontaneous polarization of polar_structure using
     a nonpolar reference phase structure and linear interpolations between the polar and
@@ -69,10 +73,14 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
         tags = []
 
     if relax:
-        polar_relax = OptimizeFW(structure=polar_structure, name="_polar_relaxation",
-                                 vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_polar)
-        nonpolar_relax = OptimizeFW(structure=nonpolar_structure, name="_nonpolar_relaxation",
-                                    vasp_cmd=vasp_cmd, db_file=db_file, vasp_input_set=vasp_relax_input_set_nonpolar)
+        polar_relax = OptimizeFW(structure=polar_structure,
+                                 name="_polar_relaxation",
+                                 vasp_cmd=vasp_cmd, db_file=db_file,
+                                 vasp_input_set=vasp_relax_input_set_polar)
+        nonpolar_relax = OptimizeFW(structure=nonpolar_structure,
+                                    name="_nonpolar_relaxation",
+                                    vasp_cmd=vasp_cmd, db_file=db_file,
+                                    vasp_input_set=vasp_relax_input_set_nonpolar)
         wf.append(polar_relax)
         wf.append(nonpolar_relax)
         parents_polar = polar_relax
@@ -88,7 +96,8 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                        static_name="_polar_static",
                        parents=parents_polar,
                        vasp_cmd=vasp_cmd, db_file=db_file,
-                       vasp_input_set=vasp_input_set_polar)
+                       vasp_input_set=vasp_input_set_polar,
+                       vasp_input_set_params=vasp_input_set_params)
 
     # Run polarization calculation on nonpolar structure.
     # Defuse workflow if nonpolar structure is metallic.
@@ -97,7 +106,8 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                           static_name="_nonpolar_static",
                           parents=parents_nonpolar,
                           vasp_cmd=vasp_cmd, db_file=db_file,
-                          vasp_input_set=vasp_input_set_nonpolar)
+                          vasp_input_set=vasp_input_set_nonpolar,
+                          vasp_input_set_params=vasp_input_set_params)
 
     # Interpolation polarization
     interpolation = []
@@ -117,7 +127,9 @@ def get_wf_ferroelectric(polar_structure, nonpolar_structure, vasp_cmd="vasp", d
                        vasp_input_set=vasp_input_set_polar, interpolate=True,
                        start="_polar_static",
                        end="_nonpolar_static",
-                       nimages=nimages, this_image=i, parents=[polar, nonpolar]))
+                       nimages=nimages, this_image=i,
+                       parents=[polar, nonpolar],
+                       vasp_input_set_params=vasp_input_set_params))
 
     wf.append(polar)
     wf.append(nonpolar)
