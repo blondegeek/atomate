@@ -101,7 +101,7 @@ class WriteVaspFromIOSetFromInterpolatedPOSCAR(GetInterpolatedPOSCAR):
         if hasattr(self['vasp_input_set'], 'write_input'):
             vis = self['vasp_input_set']
             # Swap out structure with interpolated structure
-            vis.structure = structure
+            vis._structure = structure
 
         # if VaspInputSet String + parameters was provided
         else:
